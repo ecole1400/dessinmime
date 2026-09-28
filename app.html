@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dessine ou mime – Le défi des classes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Patrick+Hand&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --paper:#fdfcf9; --ink:#141414; --soft:#5c5a55; --line:#141414;
+  --tone:#ecebe7; --red:#d62828; --red-ink:#fff; --green:#1d7a3a; --grey:#56534e;
+  --display:"Bangers","Impact","Arial Narrow",sans-serif;
+  --body:"Patrick Hand","Comic Sans MS","Segoe Print",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.25;padding-inline:16px;padding-block:14px 28px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+
+.top{position:relative;border:4px solid var(--line);overflow:hidden;min-height:92px;display:flex;align-items:center;justify-content:center;
+  background:repeating-conic-gradient(from 0deg at 50% 55%,var(--ink) 0 1.2deg,var(--paper) 1.2deg 7deg)}
+.top::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 55% 70% at 50% 55%,var(--paper) 60%,transparent 62%)}
+.top h1{position:relative;z-index:1;margin:0;font-family:var(--display);font-weight:400;font-size:clamp(32px,6vw,56px);letter-spacing:2px;text-shadow:3px 3px 0 var(--red);transform:rotate(-1.5deg);text-align:center;text-wrap:balance;padding:8px 12px}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}
+.toolbar .grp{display:flex;flex-wrap:wrap;gap:12px}
+.summary{font-size:17px;color:var(--soft)}
+
+.btn{border:3.5px solid var(--line);background:var(--paper);font-family:var(--display);font-size:22px;letter-spacing:1px;padding:8px 16px;min-height:48px;box-shadow:4px 4px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn.primary{background:var(--red);color:var(--red-ink)}
+.btn.dark{background:var(--ink);color:var(--paper)}
+.btn.ok{background:var(--green);color:#fff}
+.btn.small{font-size:18px;padding:4px 12px;min-height:40px;box-shadow:3px 3px 0 var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+.note{font-size:15px;color:var(--soft);margin:0}
+.warn{font-size:15px;color:var(--red);margin:0}
+
+/* dialogs */
+dialog.panel{padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;border:4px solid var(--line);background:var(--paper);color:var(--ink)}
+dialog.panel.wide{width:min(1000px,calc(100vw - 32px))}
+dialog.panel::backdrop{background:rgba(20,20,20,.55)}
+.dhead{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--ink);color:var(--paper);font-family:var(--display);font-size:28px;letter-spacing:1.5px;padding:6px 8px 6px 16px}
+.dhead button{border:2px solid var(--paper);background:transparent;color:var(--paper);font-family:var(--display);font-size:20px;min-width:44px;min-height:40px}
+.settings{display:flex;flex-direction:column;gap:16px;padding:14px}
+.field{display:flex;flex-direction:column;gap:7px}
+.lab{font-family:var(--display);font-size:20px;letter-spacing:1px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.lab small{font-family:var(--body);font-size:15px;color:var(--soft);letter-spacing:0}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:3px solid var(--line)}
+.seg button{border:0;border-right:3px solid var(--line);background:var(--paper);padding:8px 4px;font-family:var(--display);font-size:18px;letter-spacing:1px;min-height:44px}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.lv button[aria-pressed="true"][data-lv="3"]{background:var(--red);color:var(--red-ink)}
+.row{display:flex;gap:10px;align-items:center}
+input[type=range]{flex:1;accent-color:var(--red);min-width:0}
+.num{width:78px;border:3px solid var(--line);padding:6px 8px;background:var(--paper);font-variant-numeric:tabular-nums;text-align:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2.5px solid var(--line);background:var(--paper);border-radius:999px;padding:3px 12px;font-size:16px;min-height:34px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:17px;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--red);margin-top:1px;flex:none}
+textarea{border:3px solid var(--line);background:var(--paper);padding:8px;min-height:84px;resize:vertical;font-size:17px}
+select{border:3px solid var(--line);background:var(--paper);padding:5px 6px;min-height:40px;flex:1;min-width:0}
+.txt{border:3px solid var(--line);background:var(--paper);padding:8px 10px;min-height:52px;font-size:24px;width:100%}
+
+/* start screen */
+.start{border:5px solid var(--line);padding:22px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;background:var(--paper)}
+@media (max-width:760px){.start{grid-template-columns:1fr}}
+.start h2{margin:0 0 6px;font-family:var(--display);font-weight:400;font-size:40px;letter-spacing:1.5px;text-shadow:2px 2px 0 var(--red)}
+.start form{display:flex;flex-direction:column;gap:14px}
+.start .go{font-size:34px;min-height:70px}
+.rules{border:3px solid var(--line);padding:14px 16px;background:repeating-linear-gradient(100deg,var(--paper) 0 10px,var(--tone) 10px 12px);display:flex;flex-direction:column;gap:8px}
+.rules h3{margin:0;font-family:var(--display);font-weight:400;font-size:26px;letter-spacing:1px}
+.rules ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.podium{display:flex;flex-direction:column;gap:6px}
+.podium div{display:flex;justify-content:space-between;gap:8px;border:2.5px solid var(--line);padding:4px 10px;background:var(--paper)}
+.podium b{font-family:var(--display);font-weight:400;font-size:20px;letter-spacing:.5px}
+
+/* game */
+.game{display:flex;flex-direction:column;gap:14px;min-width:0}
+.status{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:4px solid var(--line);background:var(--paper)}
+@media (max-width:640px){.status{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.status>div{padding:6px 12px;border-right:3px solid var(--line);display:flex;flex-direction:column}
+.status>div:last-child{border-right:0}
+.status span{font-size:15px;color:var(--soft)}
+.status b{font-family:var(--display);font-weight:400;font-size:30px;letter-spacing:1px;font-variant-numeric:tabular-nums;line-height:1.05}
+.status .pts b{color:var(--red)}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;align-items:stretch}
+@media (max-width:760px){.stage{grid-template-columns:1fr}}
+
+.card{position:relative;border:5px solid var(--line);border-radius:18px;min-height:360px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column}
+.card .head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 16px;background:var(--ink);color:var(--paper);font-family:var(--display);font-size:24px;letter-spacing:1.5px}
+.card.lv2 .head{background:var(--grey)}
+.card.lv3 .head{background:var(--red)}
+.card .head .pts{background:var(--paper);color:var(--ink);padding:0 10px;font-size:20px}
+.card .face{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 20px;gap:10px;
+  background:repeating-conic-gradient(from 0deg at 50% 58%,var(--tone) 0 2deg,var(--paper) 2deg 8deg)}
+.card.mime .face{background:repeating-linear-gradient(-45deg,var(--paper) 0 12px,var(--tone) 12px 15px)}
+.card.mime{border-style:dashed}
+.word{font-family:var(--display);font-size:clamp(42px,7vw,86px);line-height:.95;letter-spacing:2px;text-wrap:balance;background:var(--paper);padding:4px 14px}
+.cat{font-size:20px;color:var(--soft);background:var(--paper);padding:0 10px}
+.kind{display:inline-flex;align-items:center;gap:8px;font-family:var(--display);font-size:22px;letter-spacing:1.5px;border:3px solid var(--line);padding:2px 12px;background:var(--paper)}
+.card .flash{position:absolute;right:16px;top:58px;z-index:2;font-family:var(--display);font-size:30px;letter-spacing:1px;border:4px solid currentColor;padding:0 10px;background:var(--paper);transform:rotate(-8deg)}
+.card .flash.ok{color:var(--green)}.card .flash.ko{color:var(--red)}
+.paused{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:repeating-conic-gradient(from 0deg at 50% 50%,#000 0 3deg,#222 3deg 9deg);color:var(--paper)}
+.paused b{font-family:var(--display);font-weight:400;font-size:56px;letter-spacing:3px;background:var(--paper);color:var(--ink);padding:0 18px;transform:rotate(-2deg)}
+
+.timer{border:5px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px;background:var(--paper)}
+.timer .t1{font-family:var(--display);font-size:20px;letter-spacing:1px}
+.ring{position:relative;width:190px;height:190px;max-width:100%}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .tt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:54px;letter-spacing:1px;font-variant-numeric:tabular-nums}
+.timer.low .tt{color:var(--red)}
+.timer .row{flex-wrap:wrap;justify-content:center}
+
+.turn{border:4px solid var(--line);display:flex;align-items:center;gap:12px;padding:6px 12px;background:var(--paper)}
+.turn .lbl{font-family:var(--display);font-size:22px;letter-spacing:1px;white-space:nowrap}
+.turn .bar{flex:1;height:22px;border:3px solid var(--line);background:var(--tone);position:relative;overflow:hidden}
+.turn .bar i{position:absolute;inset:0 auto 0 0;background:var(--ink);width:100%}
+.turn.low .bar i{background:var(--red)}
+.turn .sec{font-family:var(--display);font-size:30px;font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.turn.low .sec{color:var(--red)}
+.next{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.next b{font-family:var(--display);font-weight:400;font-size:clamp(40px,7vw,72px);letter-spacing:2px;background:var(--red);color:var(--red-ink);border:5px solid var(--ink);padding:4px 22px;transform:rotate(-4deg);box-shadow:6px 6px 0 var(--ink)}
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:520px){.actions{grid-template-columns:1fr 1fr}.actions .skip{grid-column:1 / -1}}
+.actions .btn{font-size:24px;min-height:62px}
+.keys{font-size:15px;color:var(--soft);text-align:center;margin:0}
+.keys kbd{border:2px solid var(--line);border-bottom-width:3px;padding:0 5px;border-radius:4px;font-family:var(--body);background:var(--paper)}
+.confirm{border:4px solid var(--red);padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--paper)}
+
+/* end */
+.end{border:5px solid var(--line);padding:20px;display:flex;flex-direction:column;gap:16px;background:var(--paper)}
+.end h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(38px,6vw,62px);letter-spacing:2px;text-shadow:3px 3px 0 var(--red);text-align:center;text-wrap:balance}
+.big{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.big{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.big div{border:3px solid var(--line);padding:8px 12px;text-align:center}
+.big b{display:block;font-family:var(--display);font-weight:400;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.big div:first-child{background:var(--red);color:var(--red-ink)}
+.saved{text-align:center;font-size:18px;margin:0}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.list div{border:2.5px solid var(--line);padding:5px 10px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.list .r{font-family:var(--display);letter-spacing:1px;font-size:18px;white-space:nowrap}
+.list .r.ok{color:var(--green)}.list .r.ko{color:var(--red)}
+.end .row{justify-content:center;flex-wrap:wrap}
+
+/* archive */
+.arch{padding:14px;display:flex;flex-direction:column;gap:12px}
+.tablewrap{overflow-x:auto;border:3px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:17px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 10px;border-bottom:1.5px solid var(--tone);text-align:left;white-space:nowrap}
+th{background:var(--ink);color:var(--paper);font-family:var(--display);font-weight:400;letter-spacing:1px;font-size:18px;position:sticky;top:0}
+td.n{text-align:right}
+tr.top1 td{background:#fbe3e3}
+.rank{font-family:var(--display);font-size:22px}
+.del{border:2px solid var(--line);background:var(--paper);min-height:34px;min-width:34px}
+.del.arm{background:var(--red);color:var(--red-ink);border-color:var(--red)}
+.empty{padding:18px;text-align:center;color:var(--soft)}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><h1>LA PIOCHE : LE DÉFI DES CLASSES</h1></header>
+
+  <div class="toolbar">
+    <div class="grp">
+      <button type="button" class="btn dark" id="openSettings">⚙ RÉGLAGES</button>
+      <button type="button" class="btn" id="openArchive">🏆 CLASSEMENT</button>
+      <a class="btn" href="index.html" style="text-decoration:none;color:inherit;display:inline-flex;align-items:center">← ACCUEIL</a>
+    </div>
+    <span class="summary" id="summary"></span>
+  </div>
+
+  <!-- ÉCRAN DE DÉPART -->
+  <section class="start" id="startScreen">
+    <form id="startForm" autocomplete="off">
+      <h2>QUI JOUE ?</h2>
+      <label class="lab" for="classe">NOM DE LA CLASSE <small>obligatoire</small></label>
+      <input class="txt" id="classe" list="classList" required maxlength="30" placeholder="ex. 7P-2">
+      <datalist id="classList"></datalist>
+      <label class="lab" for="groupe">GROUPE <small>facultatif</small></label>
+      <input class="txt" id="groupe" maxlength="30" placeholder="ex. Groupe 1 ou Les Dragons">
+      <button type="submit" class="btn primary go" id="go">C'EST PARTI !</button>
+      <p class="note" id="storeNote"></p>
+    </form>
+    <div class="rules">
+      <h3>LA RÈGLE DU DÉFI</h3>
+      <ul id="rulesList"></ul>
+      <h3 style="margin-top:6px">EN TÊTE DU CLASSEMENT</h3>
+      <div class="podium" id="podium"><p class="note">Aucun résultat pour l'instant.</p></div>
+    </div>
+  </section>
+
+  <!-- PARTIE -->
+  <main class="game" id="game" hidden>
+    <div class="status">
+      <div><span>CLASSE</span><b id="sClasse">—</b></div>
+      <div class="pts"><span>POINTS</span><b id="sPts">0</b></div>
+      <div><span>CARTES VALIDÉES</span><b id="sFound">0</b></div>
+      <div><span>PASSÉES / RATÉES</span><b id="sMiss">0</b></div>
+      <div><span id="sLvLbl">NIVEAU</span><b id="sLv">★</b></div>
+    </div>
+
+    <div class="stage">
+      <div class="card" id="card">
+        <div class="head"><span id="cHead">DESSIN ★</span><span class="pts" id="cPts">+1 POINT</span></div>
+        <div class="face">
+          <span class="kind" id="cKind">✎ À DESSINER</span>
+          <div class="word" id="cWord">Soleil</div>
+          <div class="cat" id="cCat">Nature</div>
+          <div class="flash" id="flash" hidden></div>
+        </div>
+        <div class="next" id="nextCover" hidden><b id="nextTxt">JOUEUR SUIVANT !</b></div>
+        <div class="paused" id="pausedCover" hidden><b>PAUSE</b><span>Le mot est caché pendant la pause.</span></div>
+      </div>
+
+      <div class="timer" id="timer">
+        <span class="t1">TEMPS RESTANT</span>
+        <div class="ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="#ecebe7" stroke-width="12"/>
+            <circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="#141414" stroke-width="12" stroke-dasharray="326.73" stroke-dashoffset="0"/>
+          </svg>
+          <div class="tt" id="tt" role="timer" aria-live="off">10:00</div>
+        </div>
+        <div class="row">
+          <button type="button" class="btn dark small" id="tPause">PAUSE</button>
+          <button type="button" class="btn small" id="stopBtn">TERMINER</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="turn" id="turn">
+      <span class="lbl">⏱ TEMPS DU JOUEUR</span>
+      <div class="bar"><i id="turnBar"></i></div>
+      <span class="sec" id="turnSec">45</span>
+    </div>
+
+    <div class="confirm" id="stopConfirm" hidden>
+      <span>Terminer la partie maintenant ? Le résultat sera enregistré tel quel.</span>
+      <div class="row"><button type="button" class="btn primary small" id="stopYes">OUI, TERMINER</button><button type="button" class="btn small" id="stopNo">CONTINUER</button></div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn ok" id="found">✓ TROUVÉ !</button>
+      <button type="button" class="btn primary" id="miss">✕ PAS TROUVÉ</button>
+      <button type="button" class="btn skip" id="skip">PASSER →</button>
+    </div>
+    <p class="keys">Clavier : <kbd>T</kbd> trouvé · <kbd>P</kbd> pas trouvé · <kbd>→</kbd> passer · <kbd>Espace</kbd> pause</p>
+  </main>
+
+  <!-- FIN -->
+  <section class="end" id="end" hidden>
+    <h2 id="endTitle">TEMPS ÉCOULÉ !</h2>
+    <div class="big">
+      <div><span>POINTS</span><b id="ePts">0</b></div>
+      <div><span>CARTES VALIDÉES</span><b id="eFound">0</b></div>
+      <div><span>★ / ★★ / ★★★</span><b id="eLv">0/0/0</b></div>
+      <div><span>PASSÉES / RATÉES</span><b id="eMiss">0</b></div>
+    </div>
+    <p class="saved" id="eSaved"></p>
+    <div class="list" id="eList"></div>
+    <div class="row">
+      <button type="button" class="btn primary" id="nextGroup">GROUPE SUIVANT</button>
+      <button type="button" class="btn" id="endArchive">🏆 VOIR LE CLASSEMENT</button>
+    </div>
+  </section>
+</div>
+
+<!-- RÉGLAGES -->
+<dialog class="panel" id="panel" aria-labelledby="dlgTitle">
+  <div class="dhead"><span id="dlgTitle">RÉGLAGES DU DÉFI</span><button type="button" id="closeSettings" aria-label="Fermer les réglages">✕</button></div>
+  <form class="settings" id="settings" autocomplete="off">
+    <div class="field">
+      <div class="lab">TYPE DE CARTES</div>
+      <div class="seg" id="type" role="group" aria-label="Type de cartes">
+        <button type="button" data-v="dessin">DESSIN</button>
+        <button type="button" data-v="mime">MIME</button>
+        <button type="button" data-v="mix">MÉLANGE</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="check"><input type="checkbox" id="progress"> <span><b>Difficulté progressive</b> : d'abord des cartes faciles, puis moyennes, puis difficiles jusqu'à la fin</span></label>
+      <div id="progBox" style="display:flex;flex-direction:column;gap:8px">
+        <div class="row"><label for="nEasy" style="flex:1">Cartes ★ faciles au début</label><input type="number" class="num" id="nEasy" min="0" max="200"></div>
+        <div class="row"><label for="nMed" style="flex:1">Puis cartes ★★ moyennes</label><input type="number" class="num" id="nMed" min="0" max="200"></div>
+        <p class="note" id="progTxt"></p>
+      </div>
+    </div>
+    <div class="field" id="levelsField">
+      <div class="lab">NIVEAUX <small id="avail"></small></div>
+      <div class="seg lv" id="levels" role="group" aria-label="Niveaux">
+        <button type="button" data-lv="1">★ FACILE</button>
+        <button type="button" data-lv="2">★★ MOYEN</button>
+        <button type="button" data-lv="3">★★★ DUR</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="lab" for="dur">DURÉE D'UNE PARTIE <small id="durTxt"></small></label>
+      <div class="row">
+        <input type="range" id="durR" min="1" max="30" step="1" aria-label="Durée en minutes (curseur)">
+        <input type="number" class="num" id="dur" min="1" max="60" step="1" aria-label="Durée en minutes">
+      </div>
+      <div class="chips" id="durChips">
+        <button type="button" class="chip" data-m="3">3 min</button>
+        <button type="button" class="chip" data-m="5">5 min</button>
+        <button type="button" class="chip" data-m="10">10 min</button>
+        <button type="button" class="chip" data-m="15">15 min</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="lab" for="turnS">TEMPS PAR JOUEUR <small id="turnTxt"></small></label>
+      <div class="row">
+        <input type="range" id="turnR" min="15" max="120" step="5" aria-label="Temps par joueur (curseur)">
+        <input type="number" class="num" id="turnS" min="10" max="300" step="5" aria-label="Temps par joueur en secondes">
+      </div>
+      <div class="chips" id="turnChips">
+        <button type="button" class="chip" data-s="30">30 s</button>
+        <button type="button" class="chip" data-s="45">45 s</button>
+        <button type="button" class="chip" data-s="60">1 min</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="check"><input type="checkbox" id="stars"> Les étoiles comptent : ★ = 1 point, ★★ = 2, ★★★ = 3</label>
+      <label class="check"><input type="checkbox" id="showCat"> Afficher la catégorie sous le mot</label>
+      <label class="check"><input type="checkbox" id="sound"> Sons (bip des 10 dernières secondes, fin de partie)</label>
+    </div>
+    <div class="field">
+      <label class="lab" for="custom">MES MOTS <small>un par ligne</small></label>
+      <textarea id="custom" placeholder="Ex. : Kangourou&#10;Faire du trampoline"></textarea>
+      <div class="row">
+        <select id="customType" aria-label="Type de mes mots"><option value="dessin">à dessiner</option><option value="mime">à mimer</option></select>
+        <select id="customLv" aria-label="Niveau de mes mots"><option value="1">★ facile</option><option value="2">★★ moyen</option><option value="3">★★★ difficile</option></select>
+      </div>
+      <label class="check"><input type="checkbox" id="onlyCustom"> Utiliser seulement mes mots</label>
+    </div>
+    <p class="warn" id="warn" hidden></p>
+    <button type="submit" class="btn primary" id="saveSettings">ENREGISTRER</button>
+    <p class="note">Gardez les mêmes réglages pour toutes les classes, pour que le défi soit équitable. Les réglages de chaque partie sont notés dans le classement.</p>
+  </form>
+</dialog>
+
+<!-- CLASSEMENT -->
+<dialog class="panel wide" id="archive" aria-labelledby="arTitle">
+  <div class="dhead"><span id="arTitle">CLASSEMENT ET ARCHIVES</span><button type="button" id="closeArchive" aria-label="Fermer le classement">✕</button></div>
+  <div class="arch">
+    <div class="row" style="flex-wrap:wrap;justify-content:space-between">
+      <div class="seg" id="view" role="group" aria-label="Affichage" style="min-width:min(100%,380px)">
+        <button type="button" data-v="groups">PAR GROUPE</button>
+        <button type="button" data-v="classes">PAR CLASSE</button>
+      </div>
+      <div class="row" style="flex-wrap:wrap">
+        <button type="button" class="btn small" id="csv">EXPORTER POUR EXCEL (CSV)</button>
+        <button type="button" class="btn small" id="backup">SAUVEGARDER</button>
+        <label class="btn small" for="importFile" style="display:inline-flex;align-items:center;cursor:pointer">IMPORTER</label>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+    </div>
+    <p class="note" id="viewNote"></p>
+    <div class="tablewrap"><table id="table"></table></div>
+    <p class="note">Le classement est enregistré dans le navigateur de cet appareil. Pour réunir les résultats de plusieurs appareils : « Sauvegarder » sur chacun, puis « Importer » les fichiers sur un seul appareil.</p>
+    <p class="note" id="archNote"></p>
+  </div>
+</dialog>
+
+<script>
+const BANK={
+ dessin:{
+  1:[["Soleil","Nature"],["Maison","Objet"],["Chat","Animal"],["Arbre","Nature"],["Pizza","Nourriture"],["Vélo","Transport"],["Lune","Espace"],["Bateau","Transport"],["Poisson","Animal"],["Fleur","Nature"],["Parapluie","Objet"],["Glace","Nourriture"],["Ballon","Sport"],["Serpent","Animal"],["Lunettes","Objet"],["Escargot","Animal"]],
+  2:[["Arc-en-ciel","Nature"],["Volcan","Nature"],["Pirate","Personnage"],["Robot","Personnage"],["Château fort","Lieu"],["Fusée","Espace"],["Pingouin","Animal"],["Sirène","Personnage"],["Dinosaure","Animal"],["Tornade","Météo"],["Dragon","Personnage"],["Igloo","Lieu"],["Cactus","Nature"],["Fantôme","Personnage"],["Astronaute","Métier"],["Montgolfière","Transport"]],
+  3:[["Anniversaire","Fête"],["Tremblement de terre","Nature"],["Somnambule","Action"],["Cauchemar","Idée"],["Recyclage","Idée"],["Téléphérique","Transport"],["Épouvantail","Objet"],["Coup de soleil","Santé"],["Embouteillage","Ville"],["Orchestre","Musique"],["Aimant","Science"],["Ombre","Science"],["Marionnette","Objet"],["Ascenseur","Ville"],["Labyrinthe","Lieu"],["Feu d'artifice","Fête"]]
+ },
+ mime:{
+  1:[["Se brosser les dents","Action"],["Nager","Sport"],["Dormir","Action"],["Manger une glace","Action"],["Jouer au foot","Sport"],["Faire du vélo","Sport"],["Pleurer","Émotion"],["Téléphoner","Action"],["Sauter à la corde","Jeu"],["Lire un livre","Action"],["Avoir froid","Émotion"],["Applaudir","Action"],["Se coiffer","Action"],["Boire","Action"],["Courir","Sport"],["Éternuer","Action"]],
+  2:[["Pêcher","Loisir"],["Conduire une voiture","Action"],["Faire du ski","Sport"],["Jouer de la guitare","Musique"],["Gonfler un ballon","Action"],["Promener un chien","Action"],["Peindre un mur","Métier"],["Faire un gâteau","Cuisine"],["Se réveiller en retard","Situation"],["Monter un escalier","Action"],["Jouer aux jeux vidéo","Loisir"],["Prendre une photo","Action"],["Faire du skate","Sport"],["Planter une fleur","Nature"],["Ouvrir un cadeau","Fête"],["Porter un sac très lourd","Action"]],
+  3:[["Marcher sur la Lune","Espace"],["Chef d'orchestre","Métier"],["Magicien","Métier"],["Être perdu","Émotion"],["Coincé dans un ascenseur","Situation"],["Surfer sur une vague","Sport"],["Marcher sur un fil","Cirque"],["Dompteur de lions","Cirque"],["Robot en panne","Personnage"],["Gardien de but","Sport"],["Être timide","Émotion"],["Escalader une montagne","Sport"],["Sous la pluie sans parapluie","Situation"],["Statue qui prend vie","Personnage"],["Faire un selfie","Action"],["Pirate sur un bateau","Personnage"]]
+ }
+};
+BANK.dessin[1].push(...[["Voiture", "Transport"], ["Étoile", "Espace"], ["Cœur", "Forme"], ["Chien", "Animal"], ["Pomme", "Nourriture"], ["Banane", "Nourriture"], ["Nuage", "Météo"], ["Crayon", "Objet"], ["Clé", "Objet"], ["Livre", "Objet"], ["Chapeau", "Vêtement"], ["Oiseau", "Animal"], ["Lapin", "Animal"], ["Gâteau", "Nourriture"]]);
+BANK.dessin[2].push(...[["Girafe", "Animal"], ["Pieuvre", "Animal"], ["Phare", "Lieu"], ["Hélicoptère", "Transport"], ["Squelette", "Corps"], ["Licorne", "Personnage"], ["Tortue", "Animal"], ["Tente de camping", "Objet"], ["Sous-marin", "Transport"], ["Château de sable", "Plage"], ["Bonhomme de neige", "Hiver"], ["Toile d'araignée", "Nature"], ["Éclair", "Météo"], ["Trésor", "Aventure"]]);
+BANK.dessin[3].push(...[["Vacances", "Idée"], ["Musée", "Lieu"], ["Invisible", "Idée"], ["Écho", "Science"], ["Gravité", "Science"], ["Récréation", "École"], ["Bibliothèque", "Lieu"], ["Minuit", "Temps"], ["Tempête de neige", "Météo"], ["Photographe", "Métier"], ["Chaîne alimentaire", "Science"], ["Marée", "Nature"], ["Hibernation", "Nature"], ["Code secret", "Idée"]]);
+BANK.mime[1].push(...[["Marcher", "Action"], ["Rire", "Émotion"], ["Bâiller", "Action"], ["Danser", "Loisir"], ["Avoir chaud", "Émotion"], ["Manger des spaghettis", "Action"], ["Se laver les mains", "Action"], ["Écrire", "École"], ["Chanter", "Musique"], ["Sauter", "Sport"], ["Se moucher", "Action"], ["Taper au clavier", "Action"], ["Mettre ses chaussures", "Action"], ["Faire coucou", "Action"]]);
+BANK.mime[2].push(...[["Jouer au tennis", "Sport"], ["Faire du bowling", "Sport"], ["Plonger", "Sport"], ["Jouer du piano", "Musique"], ["Tricoter", "Loisir"], ["Repasser", "Maison"], ["Couper du bois", "Action"], ["Boxer", "Sport"], ["Ramer en canoë", "Sport"], ["Faire la vaisselle", "Maison"], ["Attraper un papillon", "Nature"], ["Jongler", "Cirque"], ["Avoir le hoquet", "Situation"], ["Marcher dans la boue", "Situation"]]);
+BANK.mime[3].push(...[["Serveur maladroit", "Métier"], ["Chirurgien", "Métier"], ["Zombie", "Personnage"], ["Être jaloux", "Émotion"], ["Défilé de mode", "Situation"], ["Détective", "Métier"], ["Chevalier en armure", "Personnage"], ["Enfermé dans une boîte invisible", "Situation"], ["Piqué par une abeille", "Situation"], ["Arbitre de foot", "Sport"], ["Présentateur météo", "Métier"], ["Marcher contre le vent", "Situation"], ["Omelette qui brûle", "Cuisine"], ["Bébé qui fait ses premiers pas", "Personnage"]]);
+
+const $=id=>document.getElementById(id);
+const DEF={type:"dessin",levels:[1,2,3],durMin:10,turnSec:45,progress:true,nEasy:20,nMed:20,stars:true,showCat:true,sound:true,custom:"",customType:"dessin",customLv:"1",onlyCustom:false};
+let cfg=Object.assign({},DEF);
+try{const s=JSON.parse(localStorage.getItem("defi-cfg")||"null");if(s)cfg=Object.assign({},DEF,s);}catch(e){}
+function saveCfg(){try{localStorage.setItem("defi-cfg",JSON.stringify(cfg));}catch(e){}}
+const TYPE_TXT={dessin:"Dessin",mime:"Mime",mix:"Dessin + mime"};
+function esc(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML;}
+function stars(n){return "★".repeat(n);}
+function fmt(s){s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+function clamp(v,a,b){v=parseInt(v,10);if(isNaN(v))v=a;return Math.min(b,Math.max(a,v));}
+
+/* ---------- réglages ---------- */
+function pool(c){
+  c=c||cfg;
+  if(c.progress&&!c._lv)c=Object.assign({},c,{levels:[1,2,3],_lv:1});
+  const types=c.type==="mix"?["dessin","mime"]:[c.type];
+  const out=[];
+  if(!c.onlyCustom) types.forEach(t=>c.levels.forEach(l=>BANK[t][l].forEach(([w,cat])=>out.push({w,c:cat,t,l}))));
+  const lines=c.custom.split("\n").map(s=>s.trim()).filter(Boolean), ct=c.customType, cl=+c.customLv;
+  if(types.includes(ct)&&(c.onlyCustom||c.levels.includes(cl))) lines.forEach(w=>out.push({w,c:"Mes mots",t:ct,l:cl}));
+  return out;
+}
+function rulesText(c){
+  return TYPE_TXT[c.type]+" · "+(c.progress?"progressif "+c.nEasy+" ★ puis "+c.nMed+" ★★ puis ★★★":c.levels.map(stars).join(" "))+" · "+c.durMin+" min · "+c.turnSec+" s par joueur"+(c.stars?" · étoiles = points":" · 1 point par carte");
+}
+function syncUI(){
+  document.querySelectorAll("#type button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===cfg.type));
+  document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",cfg.levels.includes(+b.dataset.lv)));
+  const n=pool().length;
+  $("avail").textContent=n+" cartes dans la pioche";
+  $("durR").value=Math.min(30,cfg.durMin);$("dur").value=cfg.durMin;$("durTxt").textContent=cfg.durMin+" min";
+  document.querySelectorAll("#durChips .chip").forEach(c=>c.setAttribute("aria-pressed",+c.dataset.m===cfg.durMin));
+  $("turnR").value=Math.min(120,Math.max(15,cfg.turnSec));$("turnS").value=cfg.turnSec;$("turnTxt").textContent=cfg.turnSec+" s";
+  document.querySelectorAll("#turnChips .chip").forEach(c=>c.setAttribute("aria-pressed",+c.dataset.s===cfg.turnSec));
+  ["stars","showCat","sound","onlyCustom","progress"].forEach(k=>$(k).checked=!!cfg[k]);
+  $("progBox").hidden=!cfg.progress;$("levelsField").hidden=!!cfg.progress;
+  $("nEasy").value=cfg.nEasy;$("nMed").value=cfg.nMed;
+  $("progTxt").textContent="Cartes 1 à "+cfg.nEasy+" : faciles · cartes "+(cfg.nEasy+1)+" à "+(cfg.nEasy+cfg.nMed)+" : moyennes · ensuite : difficiles.";
+  $("custom").value=cfg.custom;$("customType").value=cfg.customType;$("customLv").value=cfg.customLv;
+  $("warn").hidden=n>0;$("warn").textContent="Aucune carte ne correspond : choisissez au moins un niveau, ou ajoutez des mots.";
+  $("saveSettings").disabled=n===0;$("go").disabled=n===0;
+  $("summary").textContent="Règles : "+rulesText(cfg);
+  const pts=cfg.stars?"★ = 1 point, ★★ = 2 points, ★★★ = 3 points.":"Chaque carte trouvée = 1 point.";
+  $("rulesList").innerHTML="";
+  ["Le groupe a <b>"+cfg.durMin+" minutes</b> pour faire deviner le plus de cartes possible.","Chaque joueur fait deviner <b>un mot</b> en dessinant ou en mimant. <b>Après "+cfg.turnSec+" secondes, on passe au joueur suivant !</b>","Mot trouvé ou non, c'est ensuite au tour du joueur suivant.","Pas de limite de cartes : on enchaîne jusqu'à la fin du chrono.",...(cfg.progress?["Ça devient de plus en plus dur : les <b>"+cfg.nEasy+" premières cartes</b> sont faciles, les <b>"+cfg.nMed+" suivantes</b> moyennes, et on finit par les <b>plus difficiles</b>."]:[]),pts,"On peut passer une carte difficile, mais elle ne rapporte rien.","Le résultat est enregistré automatiquement dans le classement."]
+    .forEach(t=>{const li=document.createElement("li");li.innerHTML=t;$("rulesList").appendChild(li);});
+}
+$("type").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;cfg.type=b.dataset.v;saveCfg();syncUI();});
+$("levels").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const l=+b.dataset.lv;
+  cfg.levels=cfg.levels.includes(l)?cfg.levels.filter(x=>x!==l):[...cfg.levels,l].sort();saveCfg();syncUI();});
+$("durR").addEventListener("input",e=>{cfg.durMin=+e.target.value;saveCfg();syncUI();});
+$("dur").addEventListener("change",e=>{cfg.durMin=clamp(e.target.value,1,60);saveCfg();syncUI();});
+$("turnR").addEventListener("input",e=>{cfg.turnSec=+e.target.value;saveCfg();syncUI();});
+$("turnS").addEventListener("change",e=>{cfg.turnSec=clamp(e.target.value,10,300);saveCfg();syncUI();});
+$("turnChips").addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;cfg.turnSec=+c.dataset.s;saveCfg();syncUI();});
+$("durChips").addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;cfg.durMin=+c.dataset.m;saveCfg();syncUI();});
+$("nEasy").addEventListener("change",e=>{cfg.nEasy=clamp(e.target.value,0,200);saveCfg();syncUI();});
+$("nMed").addEventListener("change",e=>{cfg.nMed=clamp(e.target.value,0,200);saveCfg();syncUI();});
+["stars","showCat","sound","onlyCustom","progress"].forEach(k=>$(k).addEventListener("change",e=>{cfg[k]=e.target.checked;saveCfg();syncUI();}));
+$("custom").addEventListener("input",e=>{cfg.custom=e.target.value;saveCfg();syncUI();});
+$("customType").addEventListener("change",e=>{cfg.customType=e.target.value;saveCfg();syncUI();});
+$("customLv").addEventListener("change",e=>{cfg.customLv=e.target.value;saveCfg();syncUI();});
+function openDlg(d){try{d.showModal();}catch(e){d.setAttribute("open","");}}
+function closeDlg(d){try{d.close();}catch(e){d.removeAttribute("open");}}
+$("openSettings").addEventListener("click",()=>{if(playing){setPaused(true);}syncUI();openDlg($("panel"));});
+$("closeSettings").addEventListener("click",()=>closeDlg($("panel")));
+$("settings").addEventListener("submit",e=>{e.preventDefault();closeDlg($("panel"));});
+["panel","archive"].forEach(id=>$(id).addEventListener("click",e=>{if(e.target===$(id))closeDlg($(id));}));
+
+/* ---------- partie ---------- */
+let turnEnd=0, turnLeft=0, lastTurnWhole=null, nextT=0;
+let game=null, playing=false, paused=false, endAt=0, left=0, total=0, raf=0, lastWhole=null, bag=[];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+let bags={};
+function levelFor(n){const c=game.cfg;return n<c.nEasy?1:(n<c.nEasy+c.nMed?2:3);}
+function draw(){
+  if(game.cfg.progress){
+    const want=levelFor(game.drawn);game.drawn++;
+    const order=want===1?[1,2,3]:want===2?[2,1,3]:[3,2,1];
+    for(const l of order){
+      if(!bags[l]||!bags[l].length){const p=pool(Object.assign({},game.cfg,{levels:[l],_lv:1}));bags[l]=shuffle(p);
+        if(game.current&&bags[l].length>1&&bags[l][bags[l].length-1].w===game.current.w)bags[l].unshift(bags[l].pop());}
+      if(bags[l].length)return bags[l].pop();
+    }
+  }
+  if(!bag.length){bag=shuffle(pool(game.cfg));
+    if(game.current&&bag.length>1&&bag[bag.length-1].w===game.current.w){bag.unshift(bag.pop());}}
+  return bag.pop();
+}
+function pts(c){return game.cfg.stars?c.l:1;}
+function setScreen(name){
+  $("startScreen").hidden=name!=="start";$("game").hidden=name!=="game";$("end").hidden=name!=="end";
+  $("openSettings").disabled=name==="game"&&!paused;
+}
+$("startForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const classe=$("classe").value.trim();if(!classe){$("classe").focus();return;}
+  unlockAudio();
+  game={classe,groupe:$("groupe").value.trim(),cfg:JSON.parse(JSON.stringify(cfg)),log:[],current:null,startedAt:new Date().toISOString()};
+  bag=[];bags={};game.drawn=0;
+  $("sClasse").textContent=classe+(game.groupe?" · "+game.groupe:"");
+  total=cfg.durMin*60;left=total;
+  playing=true;paused=false;$("pausedCover").hidden=true;$("stopConfirm").hidden=true;
+  nextCard();renderStatus();setScreen("game");
+  endAt=performance.now()+left*1000;lastWhole=null;startTurn();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+});
+function startTurn(){turnEnd=performance.now()+game.cfg.turnSec*1000;turnLeft=game.cfg.turnSec;lastTurnWhole=null;drawTurn();}
+function drawTurn(){const tl=Math.max(0,turnLeft),T=game.cfg.turnSec;$("turnSec").textContent=Math.ceil(tl);$("turnBar").style.width=(100*tl/T)+"%";$("turn").classList.toggle("low",tl<=10);}
+function showNext(txt){$("nextTxt").textContent=txt;$("nextCover").hidden=false;clearTimeout(nextT);nextT=setTimeout(()=>$("nextCover").hidden=true,1100);}
+function nextCard(){
+  const c=draw();game.current=c;
+  const card=$("card");card.className="card lv"+c.l+(c.t==="mime"?" mime":"");
+  $("cHead").textContent=(c.t==="mime"?"MIME ":"DESSIN ")+stars(c.l);
+  const p=pts(c);$("cPts").textContent="+"+p+" POINT"+(p>1?"S":"");
+  $("cKind").textContent=c.t==="mime"?"✋ À MIMER":"✎ À DESSINER";
+  if(game.cfg.progress){const n=game.drawn,e=game.cfg.nEasy,m=game.cfg.nMed;
+    $("sLvLbl").textContent="NIVEAU · CARTE "+n;
+    $("sLv").textContent=n<=e?"★ "+n+"/"+e:(n<=e+m?"★★ "+(n-e)+"/"+m:"★★★");}
+  else{$("sLvLbl").textContent="NIVEAU";$("sLv").textContent=stars(c.l);}
+  $("cWord").textContent=c.w;$("cCat").textContent=c.c;$("cCat").hidden=!game.cfg.showCat;
+}
+function score(){return game.log.reduce((s,r)=>s+(r.r==="ok"?pts(r):0),0);}
+function renderStatus(){
+  $("sPts").textContent=score();
+  $("sFound").textContent=game.log.filter(r=>r.r==="ok").length;
+  $("sMiss").textContent=game.log.filter(r=>r.r!=="ok").length;
+}
+let flashT=0;
+function answer(r){
+  if(!playing||paused)return;
+  const c=game.current;game.log.push({w:c.w,t:c.t,l:c.l,r});
+  if(r==="ok"){beep(880,.1,0,"triangle");beep(1320,.16,.1,"triangle");}
+  renderStatus();nextCard();startTurn();
+  const f=$("flash");f.hidden=false;f.className="flash "+(r==="ok"?"ok":"ko");
+  f.textContent=(r==="ok"?"+"+pts(c)+" !":(r==="skip"?"PASSÉ":"RATÉ"))+" · JOUEUR SUIVANT";
+  clearTimeout(flashT);flashT=setTimeout(()=>f.hidden=true,700);
+}
+$("found").addEventListener("click",()=>answer("ok"));
+$("miss").addEventListener("click",()=>answer("miss"));
+$("skip").addEventListener("click",()=>answer("skip"));
+
+function drawTimer(){
+  $("tt").textContent=fmt(left);
+  $("arc").setAttribute("stroke-dashoffset",String(326.73*(1-left/total)));
+  $("arc").setAttribute("stroke",left<=30?"#d62828":"#141414");
+  $("timer").classList.toggle("low",left<=30);
+}
+function tick(){
+  left=Math.max(0,(endAt-performance.now())/1000);
+  const whole=Math.ceil(left);
+  if(whole!==lastWhole){lastWhole=whole;if(whole<=10&&whole>0)beep(whole<=3?880:660,.08);}
+  drawTimer();
+  if(left<=0){finish(true);return;}
+  turnLeft=(turnEnd-performance.now())/1000;
+  const tw=Math.ceil(turnLeft);
+  if(tw!==lastTurnWhole){lastTurnWhole=tw;if(tw<=3&&tw>0&&whole>10)beep(520,.06);}
+  drawTurn();
+  if(turnLeft<=0){
+    const c=game.current;game.log.push({w:c.w,t:c.t,l:c.l,r:"time"});
+    beep(300,.25,0,"sawtooth");renderStatus();nextCard();startTurn();showNext("TEMPS ! JOUEUR SUIVANT");
+  }
+  raf=requestAnimationFrame(tick);
+}
+function setPaused(p){
+  if(!playing||p===paused)return;
+  paused=p;
+  if(p){cancelAnimationFrame(raf);left=Math.max(0,(endAt-performance.now())/1000);turnLeft=Math.max(0,(turnEnd-performance.now())/1000);}
+  else{endAt=performance.now()+left*1000;turnEnd=performance.now()+turnLeft*1000;raf=requestAnimationFrame(tick);}
+  $("pausedCover").hidden=!p;$("tPause").textContent=p?"REPRENDRE":"PAUSE";
+  ["found","miss","skip"].forEach(id=>$(id).disabled=p);
+  $("openSettings").disabled=!p;drawTimer();
+}
+$("tPause").addEventListener("click",()=>setPaused(!paused));
+$("stopBtn").addEventListener("click",()=>{$("stopConfirm").hidden=false;});
+$("stopNo").addEventListener("click",()=>{$("stopConfirm").hidden=true;});
+$("stopYes").addEventListener("click",()=>{$("stopConfirm").hidden=true;finish(false);});
+document.addEventListener("visibilitychange",()=>{if(playing&&!paused&&!document.hidden){cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);}});
+
+async function finish(timeUp){
+  if(!playing)return;
+  playing=false;paused=false;cancelAnimationFrame(raf);
+  if(timeUp){beep(300,.5,0,"sawtooth");beep(220,.7,.25,"sawtooth");}
+  const log=game.log, found=log.filter(r=>r.r==="ok");
+  const n=[1,2,3].map(l=>found.filter(r=>r.l===l).length);
+  const rec={classe:game.classe,groupe:game.groupe,points:score(),trouvees:found.length,n1:n[0],n2:n[1],n3:n[2],
+    passees:log.filter(r=>r.r==="skip").length,ratees:log.filter(r=>r.r==="miss"||r.r==="time").length,tempsEcoule:log.filter(r=>r.r==="time").length,tempsJoueur:game.cfg.turnSec,
+    dureeMin:game.cfg.durMin,jouees:Math.round((total-left)/60*10)/10,type:game.cfg.type,niveaux:game.cfg.levels.join(""),etoiles:!!game.cfg.stars,
+    date:new Date().toISOString(),mots:found.map(r=>r.w).slice(0,200)};
+  $("endTitle").textContent=(timeUp?"TEMPS ÉCOULÉ ! ":"PARTIE TERMINÉE ! ")+"BRAVO "+game.classe.toUpperCase()+(game.groupe?" · "+game.groupe.toUpperCase():"")+" !";
+  $("ePts").textContent=rec.points;$("eFound").textContent=rec.trouvees;$("eLv").textContent=n.join(" / ");$("eMiss").textContent=rec.passees+rec.ratees;
+  $("eList").innerHTML="";
+  log.forEach(r=>{const d=document.createElement("div");const w=document.createElement("span");w.textContent=(r.t==="mime"?"✋ ":"✎ ")+r.w+" "+stars(r.l);
+    const t=document.createElement("span");t.className="r "+(r.r==="ok"?"ok":"ko");t.textContent=r.r==="ok"?"+"+pts(r):(r.r==="skip"?"PASSÉ":(r.r==="time"?"TEMPS":"RATÉ"));d.append(w,t);$("eList").appendChild(d);});
+  $("eSaved").textContent="Enregistrement du résultat…";
+  setScreen("end");
+  try{
+    await saveResult(rec);
+    const all=groupsSorted(), rank=all.findIndex(r=>r.date===rec.date&&r.classe===rec.classe)+1;
+    $("eSaved").textContent="Résultat enregistré"+(rank?" : "+rank+(rank===1?"er":"e")+" sur "+all.length+" au classement des groupes.":".");
+  }catch(err){
+    $("eSaved").textContent="Le résultat n'a pas pu être enregistré ("+(err&&err.code||"erreur")+"). Notez-le : "+rec.points+" points.";
+  }
+}
+$("nextGroup").addEventListener("click",()=>{$("groupe").value="";setScreen("start");$("classe").focus();});
+$("endArchive").addEventListener("click",openArchive);
+
+/* ---------- archives ---------- */
+let db=null, results=[], storeMode="local", unsub=null;
+function loadLocal(){try{results=JSON.parse(localStorage.getItem("defi-results")||"[]");}catch(e){results=[];}}
+function saveLocal(){try{localStorage.setItem("defi-results",JSON.stringify(results));}catch(e){}}
+async function saveResult(rec){
+  if(db){const ref=await db.collection("resultats").add(rec);
+    if(!results.some(r=>r.id===ref.id))results.push(Object.assign({id:ref.id},rec));}
+  else{rec.id="l"+Date.now();results.push(rec);saveLocal();}
+  refreshArchive();
+}
+async function deleteResult(id){
+  if(db){await db.doc("resultats/"+id).delete();}
+  results=results.filter(r=>r.id!==id);if(!db)saveLocal();refreshArchive();
+}
+function groupsSorted(){return results.slice().sort((a,b)=>b.points-a.points||b.trouvees-a.trouvees||a.date.localeCompare(b.date));}
+function classesSorted(){
+  const m=new Map();
+  results.forEach(r=>{const k=r.classe.trim().toLowerCase();const o=m.get(k)||{classe:r.classe,groupes:0,points:0,trouvees:0,best:0};
+    o.groupes++;o.points+=r.points;o.trouvees+=r.trouvees;o.best=Math.max(o.best,r.points);m.set(k,o);});
+  return [...m.values()].map(o=>Object.assign(o,{moy:o.points/o.groupes})).sort((a,b)=>b.moy-a.moy||b.points-a.points);
+}
+let view="groups", armed=null;
+function fdate(iso){try{return new Date(iso).toLocaleString("fr-CH",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"});}catch(e){return iso;}}
+function refreshArchive(){
+  // podium sur l'écran de départ
+  const pod=$("podium");const cs=classesSorted().slice(0,3);
+  pod.innerHTML=cs.length?"":'<p class="note">Aucun résultat pour l\'instant.</p>';
+  cs.forEach((c,i)=>{const d=document.createElement("div");d.innerHTML="<b>"+(i+1)+". "+esc(c.classe)+"</b><span>"+(Math.round(c.moy*10)/10)+" pts / groupe</span>";pod.appendChild(d);});
+  // liste des classes connues
+  const dl=$("classList");dl.innerHTML="";[...new Set(results.map(r=>r.classe))].forEach(c=>{const o=document.createElement("option");o.value=c;dl.appendChild(o);});
+  // tableau
+  document.querySelectorAll("#view button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===view));
+  const t=$("table");
+  if(!results.length){t.innerHTML='<tr><td class="empty">Aucun résultat enregistré pour l\'instant. Lancez une première partie !</td></tr>';$("viewNote").textContent="";return;}
+  if(view==="groups"){
+    $("viewNote").textContent="Chaque ligne est une partie jouée par un groupe, de la meilleure à la moins bonne.";
+    let h="<thead><tr><th>#</th><th>Classe</th><th>Groupe</th><th>Points</th><th>Cartes</th><th>★ / ★★ / ★★★</th><th>Passées</th><th>Règles</th><th>Date</th><th></th></tr></thead><tbody>";
+    groupsSorted().forEach((r,i)=>{
+      h+="<tr"+(i===0?' class="top1"':"")+"><td class=\"rank\">"+(i+1)+"</td><td>"+esc(r.classe)+"</td><td>"+esc(r.groupe||"—")+"</td><td class=\"n\"><b>"+r.points+"</b></td><td class=\"n\">"+r.trouvees+"</td><td>"+r.n1+" / "+r.n2+" / "+r.n3+"</td><td class=\"n\">"+((r.passees||0)+(r.ratees||0))+"</td><td>"+esc(TYPE_TXT[r.type]||r.type)+" · "+r.dureeMin+" min"+(r.tempsJoueur?" · "+r.tempsJoueur+" s/joueur":"")+(r.jouees<r.dureeMin-0.05?" (arrêt à "+r.jouees+")":"")+"</td><td>"+fdate(r.date)+"</td><td><button type=\"button\" class=\"del"+(armed===r.id?" arm":"")+"\" data-id=\""+esc(r.id)+"\" aria-label=\"Supprimer ce résultat\">"+(armed===r.id?"Supprimer ?":"✕")+"</button></td></tr>";
+    });
+    t.innerHTML=h+"</tbody>";
+  }else{
+    $("viewNote").textContent="Classement des classes à la moyenne de points par groupe, pour que les classes avec plus de groupes ne soient pas avantagées.";
+    let h="<thead><tr><th>#</th><th>Classe</th><th>Groupes</th><th>Moyenne / groupe</th><th>Total points</th><th>Meilleur groupe</th><th>Cartes validées</th></tr></thead><tbody>";
+    classesSorted().forEach((c,i)=>{h+="<tr"+(i===0?' class="top1"':"")+"><td class=\"rank\">"+(i+1)+"</td><td><b>"+esc(c.classe)+"</b></td><td class=\"n\">"+c.groupes+"</td><td class=\"n\"><b>"+(Math.round(c.moy*10)/10)+"</b></td><td class=\"n\">"+c.points+"</td><td class=\"n\">"+c.best+"</td><td class=\"n\">"+c.trouvees+"</td></tr>";});
+    t.innerHTML=h+"</tbody>";
+  }
+}
+$("view").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;view=b.dataset.v;armed=null;refreshArchive();});
+$("table").addEventListener("click",async e=>{const b=e.target.closest(".del");if(!b)return;const id=b.dataset.id;
+  if(armed!==id){armed=id;refreshArchive();return;}
+  armed=null;try{await deleteResult(id);}catch(err){$("archNote").textContent="Suppression impossible ("+(err&&err.code||"erreur")+").";}});
+function openArchive(){armed=null;refreshArchive();openDlg($("archive"));}
+$("openArchive").addEventListener("click",()=>{if(playing)setPaused(true);openArchive();});
+$("closeArchive").addEventListener("click",()=>closeDlg($("archive")));
+
+$("csv").addEventListener("click",async()=>{
+  const head=["Rang","Classe","Groupe","Points","Cartes validées","Faciles","Moyennes","Difficiles","Passées","Ratées ou temps écoulé","Type","Niveaux","Durée (min)","Temps par joueur (s)","Temps joué (min)","Date"];
+  const q=v=>{v=String(v??"");return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const rows=groupsSorted().map((r,i)=>[i+1,r.classe,r.groupe||"",r.points,r.trouvees,r.n1,r.n2,r.n3,r.passees||0,r.ratees||0,TYPE_TXT[r.type]||r.type,r.niveaux,r.dureeMin,r.tempsJoueur||"",r.jouees,fdate(r.date)]);
+  const csv="﻿"+[head,...rows].map(r=>r.map(q).join(";")).join("\r\n");
+  dl("defi-des-classes.csv",csv,"text/csv;charset=utf-8");$("archNote").textContent="Fichier CSV téléchargé.";
+});
+function dl(name,data,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
+$("backup").addEventListener("click",()=>{const d=new Date().toISOString().slice(0,10);dl("sauvegarde-defi-"+d+".json",JSON.stringify({app:"defi-dessin-mime",v:1,results},null,1),"application/json");$("archNote").textContent="Sauvegarde téléchargée ("+results.length+" résultats).";});
+$("importFile").addEventListener("change",async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const j=JSON.parse(await f.text());const arr=Array.isArray(j)?j:j.results;if(!Array.isArray(arr))throw 0;
+    let n=0;arr.forEach(r=>{if(!r||typeof r.classe!=="string"||typeof r.points!=="number")return;if(!r.id)r.id="i"+Math.random().toString(36).slice(2);
+      if(!results.some(x=>x.id===r.id||(x.date===r.date&&x.classe===r.classe&&x.groupe===r.groupe))){results.push(r);n++;}});
+    saveLocal();refreshArchive();$("archNote").textContent=n+" résultat"+(n>1?"s":"")+" importé"+(n>1?"s":"")+".";
+  }catch(err){$("archNote").textContent="Ce fichier n'est pas une sauvegarde du défi.";}
+  e.target.value="";
+});
+
+/* ---------- sons ---------- */
+let actx=null;
+function unlockAudio(){try{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume();}catch(e){}}
+function beep(f,d,delay=0,type="square"){
+  const c=game?game.cfg:cfg;if(!c.sound||!actx)return;
+  try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();
+    o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.02);}catch(e){}
+}
+document.addEventListener("pointerdown",unlockAudio,{once:true});
+
+/* ---------- clavier ---------- */
+document.addEventListener("keydown",e=>{
+  if(e.target.closest("input,textarea,select"))return;
+  if($("panel").open||$("archive").open||!playing)return;
+  const k=e.key.toLowerCase();
+  if(k===" "){e.preventDefault();setPaused(!paused);}
+  else if(k==="t")answer("ok");
+  else if(k==="p")answer("miss");
+  else if(k==="arrowright")answer("skip");
+});
+
+/* ---------- démarrage ---------- */
+loadLocal();syncUI();refreshArchive();setScreen("start");
+$("storeNote").textContent="Le classement est enregistré sur cet appareil.";
+</script>
+</body>
+</html>
